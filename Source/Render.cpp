@@ -247,7 +247,7 @@ namespace {
                 if(std::filesystem::exists(p)) {
                     Logging::LogWorkVerbose("Deleting %s", p.string().c_str());
                     if(!std::filesystem::remove(p)) {
-                        Logging::LogError("Could not delete %s. We will attempt to continue but rendering this page is unlikely to succeed.", p);
+                        Logging::LogError("Could not delete %s. We will attempt to continue but rendering this page is unlikely to succeed.", p.string().c_str());
                     }
                 }
                 std::filesystem::create_directories(p.parent_path());
