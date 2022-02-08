@@ -5,6 +5,12 @@ on:
     branches: [ main ]
     paths-ignore:
       - '**.md'
+      - '**.png'
+      - '**.svg'
+      - '.gitignore'
+      - '**.html'
+      - '**.css'
+      - '**.js'
   pull_request:
     branches: [ main ]
 
