@@ -1,0 +1,16 @@
+cmake_minimum_required (VERSION 3.12)
+
+set(CMAKE_CXX_STANDARD 20)
+
+project (esd)
+
+set(PROJ_PRIVATE_DIR     Source/ )
+
+file(GLOB_RECURSE PROJ_SOURCE_FILES 
+    "${PROJ_PRIVATE_DIR}/*.cpp"
+    "${PROJ_PRIVATE_DIR}/*.h"
+)
+
+add_executable(${PROJECT_NAME} ${PROJ_SOURCE_FILES})
+
+set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")

@@ -1,0 +1,45 @@
+name: Build and Package
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  package-windows:
+    strategy:
+      matrix:
+        arch: [Win32, x64]
+        configuration: [Debug, Release]
+        os: [Windows-2019, Ubuntu-18.04, Macos-10.15]
+    runs-on: ${{ matrix.os }}
+    steps:
+        
+      - uses: actions/checkout@v1
+        with:
+          submodules: true
+
+      - name: "Create Build directory"
+        run: mkdir -p ./Build
+
+      - name: "Move to build directory"
+        run: cd ./Build
+
+      - name: Generate Win${{ matrix.arch }} ${{ matrix.configuration }}
+        run: |
+          cmake .. -A ${{ matrix.arch }}
+
+      - name: Build Win${{ matrix.arch }} ${{ matrix.configuration }}
+        run: |
+          cmake .. --build --config ${{ matrix.configuration }}
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: esd Win${{ matrix.arch }} ${{ matrix.configuration }} ${{ matrix.os }}
+          path: |
+            Build/{{ $matrix.configuration }}/**
+          if-no-files-found: error
+          retention-days: 7
