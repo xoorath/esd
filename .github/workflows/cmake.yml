@@ -59,19 +59,13 @@ jobs:
 
       - uses: actions/checkout@v1
 
-      - name: "Create Build directory"
-        run: mkdir -p ./Build
-
-      - name: "Move to build directory"
-        run: cd ./Build
-
       - name: Generate Win${{ matrix.config.build_arch }} ${{ matrix.config.build_type }}
         run: |
-          cmake .. -A ${{ matrix.config.build_arch }}
+          cmake -S . -B Build -A ${{ matrix.config.build_arch }}
 
       - name: Build Win${{ matrix.config.build_arch }} ${{ matrix.config.build_type }}
         run: |
-          cmake .. --build --config ${{ matrix.config.build_type }}
+          cmake -S . -B Build --build --config ${{ matrix.config.build_type }}
 
       - uses: actions/upload-artifact@v2
         with:
