@@ -80,6 +80,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install ninja-build
           sudo apt-get upgrade build-essential
+          sudo apt-get upgrade gcc
 
       - name: Generate ${{ matrix.config.os }}-${{ matrix.config.build_arch }} ${{ matrix.config.build_type }}
         if: "contains(matrix.config.build_generator, 'Visual Studio')"
