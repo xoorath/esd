@@ -11,48 +11,49 @@ on:
 jobs:
   package-windows:
     strategy:
+      fail-fast: false
       matrix:
         config:
-          - {
-            os: Windows-2019
-            build_arch: Win32
-            build_type: Debug
-          }
-          - {
-            os: Windows-2019
-            build_arch: Win32
-            build_type: Release
-          }
-          - {
-            os: Windows-2019
-            build_arch: x64
-            build_type: Debug
-          }
-          - {
-            os: Windows-2019
-            build_arch: x64
-            build_type: Release
-          }
-          - {
-            os: Ubuntu-18.04
-            build_arch: x64
-            build_type: Debug
-          }
-          - {
-            os: Ubuntu-18.04
-            build_arch: x64
-            build_type: Release
-          }
-          - {
-            os: Macos-10.15
-            build_arch: x64
-            build_type: Debug
-          }
-          - {
-            os: Macos-10.15
-            build_arch: x64
-            build_type: Release
-          }
+        - {
+          os: Windows-2019,
+          build_arch: Win32,
+          build_type: Debug
+        }
+        - {
+          os: Windows-2019,
+          build_arch: Win32,
+          build_type: Release
+        }
+        - {
+          os: Windows-2019,
+          build_arch: x64,
+          build_type: Debug
+        }
+        - {
+          os: Windows-2019,
+          build_arch: x64,
+          build_type: Release
+        }
+        - {
+          os: Ubuntu-18.04,
+          build_arch: x64,
+          build_type: Debug
+        }
+        - {
+          os: Ubuntu-18.04,
+          build_arch: x64,
+          build_type: Release
+        }
+        - {
+          os: Macos-10.15,
+          build_arch: x64,
+          build_type: Debug
+        }
+        - {
+          os: Macos-10.15,
+          build_arch: x64,
+          build_type: Release
+        }
     runs-on: ${{ matrix.config.os }}
     steps:
 
