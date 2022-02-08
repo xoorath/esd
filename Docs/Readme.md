@@ -2,7 +2,7 @@
 
 ## Docs
 
-[Home](../Readme.md)
+[Home](../README.md)
 
 * [Building esd](./Build.md)
 * [Example](./Example.md)
