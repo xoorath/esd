@@ -39,13 +39,13 @@ jobs:
           build_generator: Visual Studio 16 2019
         }
         - {
-          os: Ubuntu-18.04,
+          os: ubuntu-20.04,
           build_arch: x64,
           build_type: Debug,
           build_generator: Ninja
         }
         - {
-          os: Ubuntu-18.04,
+          os: ubuntu-20.04,
           build_arch: x64,
           build_type: Release,
           build_generator: Ninja
