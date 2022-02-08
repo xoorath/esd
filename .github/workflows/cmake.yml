@@ -70,12 +70,15 @@ jobs:
       - name: Install Ninja
         if: "contains(matrix.config.os, 'Macos')"
         run: |
+          brew update
           brew install ninja
+          brew upgrade
 
       - name: Install Ninja
         if: "contains(matrix.config.os, 'Ubuntu')"
         run: |
-          sudo apt-get install ninja-build
+          apt-get update
+          sudo apt-get install ninja-build build-essential
 
       - name: Generate ${{ matrix.config.os }}-${{ matrix.config.build_arch }} ${{ matrix.config.build_type }}
         if: "contains(matrix.config.build_generator, 'Visual Studio')"
