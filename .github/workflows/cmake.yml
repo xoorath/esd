@@ -9,7 +9,7 @@ on:
     branches: [ main ]
 
 jobs:
-  package-windows:
+  build-and-package:
     strategy:
       fail-fast: false
       matrix:
