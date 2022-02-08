@@ -17,7 +17,7 @@ jobs:
         os: [Windows-2019, Ubuntu-18.04, Macos-10.15]
     runs-on: ${{ matrix.os }}
     steps:
-        
+
       - uses: actions/checkout@v1
         with:
           submodules: true
