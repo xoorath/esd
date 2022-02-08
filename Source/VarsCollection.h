@@ -28,6 +28,7 @@ public:
     ***************************************************************************************************/
     static std::optional<VarsCollection> TryLoadVarsCollection(std::filesystem::path const& path);
 
+    VarsCollection()                                 = default;
     ~VarsCollection()                                = default;
     VarsCollection(VarsCollection const&)            = default;
     VarsCollection& operator=(VarsCollection const&) = default;
@@ -46,7 +47,6 @@ public:
     size_t size() const;
 
 private:
-    VarsCollection()= default;
 
     std::unordered_map<std::string, std::string> m_VarMap;
 };

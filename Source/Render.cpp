@@ -204,9 +204,8 @@ namespace {
     }
 
     void RenderIncludes(std::filesystem::path const& sourcePath, std::filesystem::path const& outputPath) {
-        std::filesystem::path const sitePathRelative = std::filesystem::relative(sourcePath, k_SitePath);
-
         auto job = Logging::JobScope("Render Includes");
+        std::filesystem::path const sitePathRelative = std::filesystem::relative(sourcePath, k_SitePath);
 
         if(std::filesystem::exists(outputPath)) {
             Logging::LogWorkVerbose("Deleting %s", outputPath.string().c_str());
@@ -318,10 +317,102 @@ namespace {
         Logging::LogWork("%d include%s processed", includesProcessed, includesProcessed==1?"":"s");
     }
 
+    // Removes all instances of variable declarations (like: "${variable:name=value}") in the file at mutablePagePath.
+    // While doing so these variable declarations are parsed into the returned VarsCollection.
+    // If any failure occurs that can not be recovered from {} will be returned instead.
+    std::optional<VarsCollection> ParseInlineVariables(std::filesystem::path const& mutablePagePath) {
+        auto job = Logging::JobScope("Variable Declaration");
+
+        std::filesystem::path const publicPathRelative = std::filesystem::relative(mutablePagePath, k_PublicPath);
+
+        if (!std::filesystem::exists(mutablePagePath) || !std::filesystem::is_regular_file(mutablePagePath)) {
+            Logging::LogError("File not found: %s", mutablePagePath.string().c_str());
+            return {};
+        }
+
+        std::fstream pageStream(mutablePagePath.c_str(), std::ios::in | std::ios::out);
+
+        if (pageStream.fail()) {
+            Logging::LogError("Could not open page file for reading: %s", mutablePagePath.string().c_str());
+            return {};
+        }
+
+        std::vector<CappedSearchResult> results;
+        VarsCollection collection;
+
+        results = FindIndicatorsWithCaps(pageStream, k_VarDeclarationIndicator, k_CapChar);
+        pageStream.clear();
+        pageStream.seekg(0);
+
+        int variablesDeclared = 0;
+        
+        if (results.size() > 0) {
+
+            std::filesystem::path const tempPath = std::filesystem::temp_directory_path() / publicPathRelative.parent_path() / (std::filesystem::path("1_") += (publicPathRelative.filename()));
+            if (std::filesystem::exists(tempPath)) {
+                Logging::LogWorkVerbose("Deleting %s", tempPath.string().c_str());
+                if (!std::filesystem::remove(tempPath)) {
+                    Logging::LogError("Could not delete %s. We will attempt to continue but rendering this page is unlikely to succeed.", tempPath.string().c_str());
+                }
+            }
+
+            std::filesystem::create_directories(tempPath.parent_path());
+
+            std::fstream tempFileStream = std::fstream(tempPath, std::ios::out | std::ios::trunc);
+
+            if (tempFileStream.fail()) {
+                Logging::LogError("Could not open temp file for writing: %s.", tempPath.string().c_str());
+                return {};
+            }
+
+            std::streamsize position = 0;
+            for (CappedSearchResult const& variableDeclaration : results) {
+
+                // Collect all (non-variable) file content from the source file.
+                for (std::streamsize i = position; i < variableDeclaration.ResultStart; ++i, ++position) {
+                    char ch = '\0';
+                    pageStream.get(ch);
+                    tempFileStream << ch;
+                }
+
+                size_t assignmentIndex = variableDeclaration.ResultCenter.find_first_of('=');
+
+                if (assignmentIndex == std::string::npos) {
+                    Logging::LogWarning("Inline variable declaration is invalid: \"%s\"", variableDeclaration.ResultCenter.c_str());
+                }
+                else {
+                    std::string const key = variableDeclaration.ResultCenter.substr(0, assignmentIndex);
+                    std::string const value = variableDeclaration.ResultCenter.substr(assignmentIndex+1);
+                    collection.SetVariable(key, value);
+                    ++variablesDeclared;
+                }
+
+                // Then advance the input file itself so we skip the variable declaration.
+                position += variableDeclaration.ResultSize;
+                pageStream.seekg(pageStream.tellg() + static_cast<std::streampos>(variableDeclaration.ResultSize));
+            }
+
+            // Copy the remainder of the file.
+            char ch = '\0';
+            while (pageStream.get(ch)) {
+                tempFileStream << ch;
+            }
+
+            pageStream.close();
+            tempFileStream.close();
+
+            std::filesystem::copy(tempPath, mutablePagePath, std::filesystem::copy_options::overwrite_existing);
+        }
+
+        Logging::LogWork("%d inline variable%s declared", variablesDeclared, variablesDeclared == 1 ? "" : "s");
+        return { collection };
+    }
+
     // Replaces instances of variables (like: "{$var_name}") in a file at mutablePagePath with variables from variableCollections
     // If these variables do not exist the variable statement will be left in place to hopefully in many cases indicate clearly where a problem occured.
     // "mutablePagePath" is named as such because the file at this path will be changed.
     void SubstituteVariables(std::filesystem::path const& mutablePagePath, std::initializer_list<std::optional<VarsCollection>> variableCollections) {
+        auto job = Logging::JobScope("Variable Substitution");
         std::filesystem::path const publicPathRelative = std::filesystem::relative(mutablePagePath, k_PublicPath);
 
        if(!std::filesystem::exists(mutablePagePath) || !std::filesystem::is_regular_file(mutablePagePath)) {
@@ -342,12 +433,8 @@ namespace {
         pageStream.clear();
         pageStream.seekg(0);
 
-        std::string buffer;
-        int  depth = 0;
-
         // Only process includes if there are any, otherwise we can skip a temporary file and copy directly to output.
         if(results.size() > 0) {
-            auto job = Logging::JobScope("Variable Substitution");
 
             std::filesystem::path const tempPath = std::filesystem::temp_directory_path() / publicPathRelative.parent_path() / (std::filesystem::path("1_") += (publicPathRelative.filename()));
             if(std::filesystem::exists(tempPath)) {
@@ -384,6 +471,8 @@ namespace {
                         if(var.has_value()) {
                             substitution = var.value();
                             valueSubstituted = true;
+                            // Don't continue looking at other collections once we've found a suitable variable substitution
+                            break;
                         }
                     }
                 }
@@ -394,7 +483,7 @@ namespace {
                     tempFileStream << variableSubstitution.ResultCenter;
                 }
 
-                // Then advance the input file itself so we skil the include statement.
+                // Then advance the input file itself so we skip to the end of the variable substitution
                 position += variableSubstitution.ResultSize;
                 pageStream.seekg(pageStream.tellg() + static_cast<std::streampos>(variableSubstitution.ResultSize));
             }
@@ -409,10 +498,9 @@ namespace {
             tempFileStream.close();
 
             std::filesystem::copy(tempPath, mutablePagePath, std::filesystem::copy_options::overwrite_existing);
-
-            int variablesSubstituted = static_cast<int>(results.size());
-            Logging::LogWork("%d variable%s substitued", variablesSubstituted, variablesSubstituted==1?"":"s");
         }
+        int variablesSubstituted = static_cast<int>(results.size());
+        Logging::LogWork("%d variable%s substitued", variablesSubstituted, variablesSubstituted == 1 ? "" : "s");
     }
 }
 
@@ -430,8 +518,10 @@ void RenderPage(std::filesystem::path const& sourcePath, std::optional<VarsColle
     }
 
     RenderIncludes(sourcePath, outputPath);
+    std::optional<VarsCollection> inlineVariables = ParseInlineVariables(outputPath);
 
-    SubstituteVariables(outputPath, {vars});
+    // pass inlineVariables first so they are read before the variables from Vars.txt
+    SubstituteVariables(outputPath, { inlineVariables, vars });
 
     Logging::LogWork("");
 }

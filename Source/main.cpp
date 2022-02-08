@@ -26,7 +26,7 @@ int main()
         std::optional<VarsCollection> vars;
 
         {
-            auto loadingVarsJob = Logging::JobScope("loading Vars.txt");
+            auto loadingVarsJob = Logging::JobScope("Loading Vars.txt");
             if(std::filesystem::exists(k_VarsPath) && std::filesystem::is_regular_file(k_VarsPath))
             {
                 vars = VarsCollection::TryLoadVarsCollection(k_VarsPath);
@@ -56,7 +56,7 @@ int main()
         }
 
         {
-            auto renderJob = Logging::JobScope("Rendering site");
+            auto renderJob = Logging::JobScope("Rendering Site");
             for (const std::filesystem::directory_entry& entry : std::filesystem::recursive_directory_iterator(k_SitePath)) {
                 if(entry.is_regular_file()) {
                     RenderPage(entry.path(), vars);
