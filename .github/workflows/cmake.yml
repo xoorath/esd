@@ -12,15 +12,51 @@ jobs:
   package-windows:
     strategy:
       matrix:
-        arch: [Win32, x64]
-        configuration: [Debug, Release]
-        os: [Windows-2019, Ubuntu-18.04, Macos-10.15]
-    runs-on: ${{ matrix.os }}
+        config:
+          - {
+            os: Windows-2019
+            build_arch: Win32
+            build_type: Debug
+          }
+          - {
+            os: Windows-2019
+            build_arch: Win32
+            build_type: Release
+          }
+          - {
+            os: Windows-2019
+            build_arch: x64
+            build_type: Debug
+          }
+          - {
+            os: Windows-2019
+            build_arch: x64
+            build_type: Release
+          }
+          - {
+            os: Ubuntu-18.04
+            build_arch: x64
+            build_type: Debug
+          }
+          - {
+            os: Ubuntu-18.04
+            build_arch: x64
+            build_type: Release
+          }
+          - {
+            os: Macos-10.15
+            build_arch: x64
+            build_type: Debug
+          }
+          - {
+            os: Macos-10.15
+            build_arch: x64
+            build_type: Release
+          }
+    runs-on: ${{ matrix.config.os }}
     steps:
 
       - uses: actions/checkout@v1
-        with:
-          submodules: true
 
       - name: "Create Build directory"
         run: mkdir -p ./Build
@@ -28,18 +64,18 @@ jobs:
       - name: "Move to build directory"
         run: cd ./Build
 
-      - name: Generate Win${{ matrix.arch }} ${{ matrix.configuration }}
+      - name: Generate Win${{ matrix.config.build_arch }} ${{ matrix.config.build_type }}
         run: |
-          cmake .. -A ${{ matrix.arch }}
+          cmake .. -A ${{ matrix.config.build_arch }}
 
-      - name: Build Win${{ matrix.arch }} ${{ matrix.configuration }}
+      - name: Build Win${{ matrix.config.build_arch }} ${{ matrix.config.build_type }}
         run: |
-          cmake .. --build --config ${{ matrix.configuration }}
+          cmake .. --build --config ${{ matrix.config.build_type }}
 
       - uses: actions/upload-artifact@v2
         with:
-          name: esd Win${{ matrix.arch }} ${{ matrix.configuration }} ${{ matrix.os }}
+          name: esd Win${{ matrix.config.build_arch }} ${{ matrix.config.build_type }} ${{ matrix.config.os }}
           path: |
-            Build/{{ $matrix.configuration }}/**
+            Build/{{ $matrix.config.build_type }}/**
           if-no-files-found: error
           retention-days: 7
