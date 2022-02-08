@@ -23,6 +23,7 @@ If you're thinking of contributing to the project, keep these guidelines in mind
     * Incorrect usage should be pointed out, not supported.
 4. We do not support every compiler, compiler version or platform.
     * We support Windows with VS2019 and Unix platforms with Ninja.
+    * Others will probably work, but is on the tinkering user to figure out. Good luck!
 
 ## What else can ESD do?
 
