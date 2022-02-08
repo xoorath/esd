@@ -2,9 +2,9 @@
 
 ## Example
 
-[Home](../Readme.md) / [Home](../Readme.md) / [Docs](./Readme.md) / *Example*
+[Home](../README.md) / [Docs](./Readme.md) / *Example*
 
-The esd tool supports including files, declaring variables and variable substitution. You can see them in action in the following example:
+ESD supports including files, declaring variables and variable substitution. You can see them in action in the following example:
 
 `./Private/Sites/index.html`
 ```html
@@ -40,4 +40,4 @@ If you were to run `esd` in a directory with these files you would get the follo
 </html>
 ```
 
-The esd tool is simple by design. The rest is up to you.
+**ESD is simple by design. The rest is up to you.**
