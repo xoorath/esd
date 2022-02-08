@@ -78,7 +78,8 @@ jobs:
         if: "contains(matrix.config.os, 'Ubuntu')"
         run: |
           sudo apt-get update
-          sudo apt-get install ninja-build build-essential
+          sudo apt-get install ninja-build
+          sudo apt-get upgrade build-essential
 
       - name: Generate ${{ matrix.config.os }}-${{ matrix.config.build_arch }} ${{ matrix.config.build_type }}
         if: "contains(matrix.config.build_generator, 'Visual Studio')"
