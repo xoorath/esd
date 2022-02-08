@@ -96,5 +96,6 @@ jobs:
           name: esd ${{ matrix.config.os }}-${{ matrix.config.build_arch }} ${{ matrix.config.build_type }} ${{ matrix.config.os }}
           path: |
             Build/${{ matrix.config.build_type }}/**
+            Build/esd
           if-no-files-found: error
           retention-days: 7
