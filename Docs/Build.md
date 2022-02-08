@@ -2,7 +2,7 @@
 
 ## Building
 
-[Home](../Readme.md) / [Docs](./Readme.md) / *Building*
+[Home](../README.md) / [Docs](./Readme.md) / *Building*
 
 #### Windows
 
