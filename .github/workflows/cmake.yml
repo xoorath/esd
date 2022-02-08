@@ -67,6 +67,16 @@ jobs:
 
       - uses: actions/checkout@v1
 
+      - name: Install Ninja
+        if: "contains(matrix.config.os, 'Macos')"
+        run: |
+          brew install ninja
+
+      - name: Install Ninja
+        if: "contains(matrix.config.os, 'Ubuntu')"
+        run: |
+          sudo apt-get install ninja-build
+
       - name: Generate ${{ matrix.config.os }}-${{ matrix.config.build_arch }} ${{ matrix.config.build_type }}
         if: "contains(matrix.config.build_generator, 'Visual Studio')"
         run: |
@@ -85,6 +95,6 @@ jobs:
         with:
           name: esd ${{ matrix.config.os }}-${{ matrix.config.build_arch }} ${{ matrix.config.build_type }} ${{ matrix.config.os }}
           path: |
-            Build/{{ $matrix.config.build_type }}/**
+            Build/${{ matrix.config.build_type }}/**
           if-no-files-found: error
           retention-days: 7
