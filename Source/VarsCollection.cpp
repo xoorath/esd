@@ -6,6 +6,28 @@
 #include <iostream>
 #include <string.h>
 
+std::istream& GetVarsLine(std::istream& stream, std::string& outString) {
+    outString.clear();
+    char ch = '\0';
+    while (stream.read(&ch, 1)) {
+        switch (ch) {
+            case '\n': return stream;
+            case '\r':
+                if (stream.peek() == '\n') {
+                    stream.read(&ch, 1);
+                }
+                return stream;
+            case std::streambuf::traits_type::eof():
+                stream.setstate(std::ios::eofbit);
+                return stream;
+            default:
+                outString += ch;
+                break;
+        }
+    }
+    return stream;
+}
+
 //static
 std::optional<VarsCollection> VarsCollection::TryLoadVarsCollection(std::filesystem::path const& path) {
     if(!std::filesystem::exists(path) || !std::filesystem::is_regular_file(path)) {
@@ -38,7 +60,7 @@ std::optional<VarsCollection> VarsCollection::TryLoadVarsCollection(std::filesys
         && (line.size() == 1 || line[line.size()-2] == '\\');
     };
 
-    while(std::getline(stream, line)) {
+    while(GetVarsLine(stream, line)) {
         if(insideContinuation) {
             if(LineHasContinuation(line)) {
                 // continuation keeps going, don't include the last char.

@@ -14,7 +14,7 @@ int main()
     try 
     {
         // Ensure all required paths exist before begining.
-        for(const auto& path : {k_PublicPath, k_PrivatePath, k_SitePath, k_ComponentPath}) {
+        for(const auto& path : {GetPublicPath(), GetPrivatePath(), GetSitePath(), GetComponentPath()}) {
             if(!std::filesystem::exists(path) || !std::filesystem::is_directory(path)) {
                 std::stringstream errorText;
                 errorText << "Error: Path does not exist or is not a directory.\n";
@@ -27,9 +27,9 @@ int main()
 
         {
             auto loadingVarsJob = Logging::JobScope("Loading Vars.txt");
-            if(std::filesystem::exists(k_VarsPath) && std::filesystem::is_regular_file(k_VarsPath))
+            if(std::filesystem::exists(GetVarsPath()) && std::filesystem::is_regular_file(GetVarsPath()))
             {
-                vars = VarsCollection::TryLoadVarsCollection(k_VarsPath);
+                vars = VarsCollection::TryLoadVarsCollection(GetVarsPath());
 
                 if(vars.has_value()) {
                     Logging::LogWork("%d variables loaded.", static_cast<int>(vars.value().size()));
@@ -46,7 +46,7 @@ int main()
                 }
             }
             else {
-                Logging::AppendFileDetails(std::cout, k_VarsPath);
+                Logging::AppendFileDetails(std::cout, GetVarsPath());
 
                 Logging::LogWarning("Vars.txt not found, no variables loaded.");
                 // A safe warning to ignore if you know what you're doing and don't need vars.txt
@@ -57,7 +57,7 @@ int main()
 
         {
             auto renderJob = Logging::JobScope("Rendering Site");
-            for (const std::filesystem::directory_entry& entry : std::filesystem::recursive_directory_iterator(k_SitePath)) {
+            for (const std::filesystem::directory_entry& entry : std::filesystem::recursive_directory_iterator(GetSitePath())) {
                 if(entry.is_regular_file()) {
                     RenderPage(entry.path(), vars);
                 }

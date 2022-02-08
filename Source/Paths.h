@@ -2,8 +2,8 @@
 
 #include <filesystem>
 
-std::filesystem::path const k_PublicPath("./Public");
-std::filesystem::path const k_PrivatePath("./Private");
-std::filesystem::path const k_SitePath("./Private/Site");
-std::filesystem::path const k_ComponentPath("./Private/Components");
-std::filesystem::path const k_VarsPath("./Vars.txt");
+std::filesystem::path const& GetPublicPath();
+std::filesystem::path const& GetPrivatePath();
+std::filesystem::path const& GetSitePath();
+std::filesystem::path const& GetComponentPath();
+std::filesystem::path const& GetVarsPath();

@@ -3,6 +3,7 @@
 #include <array>
 #include <istream>
 #include <vector>
+#include <functional>
 #include <fstream>
 
 #include "VarsCollection.h"
@@ -163,7 +164,7 @@ namespace {
                 }
 
                 // print the entire included file to the output file.
-                auto const includePath = k_ComponentPath / include.ResultCenter;
+                auto const includePath = GetComponentPath() / include.ResultCenter;
                 
                 Logging::LogWorkVerbose("Including file: %s", includePath.string().c_str());
 
@@ -205,7 +206,7 @@ namespace {
 
     void RenderIncludes(std::filesystem::path const& sourcePath, std::filesystem::path const& outputPath) {
         auto job = Logging::JobScope("Render Includes");
-        std::filesystem::path const sitePathRelative = std::filesystem::relative(sourcePath, k_SitePath);
+        std::filesystem::path const sitePathRelative = std::filesystem::relative(sourcePath, GetSitePath());
 
         if(std::filesystem::exists(outputPath)) {
             Logging::LogWorkVerbose("Deleting %s", outputPath.string().c_str());
@@ -221,14 +222,22 @@ namespace {
             return;
         }
 
+
         std::vector<CappedSearchResult> results;
-        
+
         results = FindIndicatorsWithCaps(sourceFile, k_IncludeIndicator, k_CapChar);
         sourceFile.clear();
         sourceFile.seekg(0);
 
         std::string buffer;
         int  depth = 0;
+
+        // HACK: The way I've designed includes to work doesn't allow us to easily determine where a particular include
+        // file came from (ie: what file caused this include declaration to exist). Because of that we are limiting 
+        // the max include depth to something high that is unlikely to be hit under normal circumstances.
+        // Ideally we should just do a pre-processing pass where we create an include tree to find circular dependencies first
+        // or change the renderer design to more easily collect a stack of work it's doing.
+        constexpr int k_maxIncludeDepth = 30;
 
         //continue to count the number of includes proccessed (to log later)
         int includesProcessed = static_cast<int>(results.size());
@@ -297,8 +306,12 @@ namespace {
                 // Otherwise we want to keep the index correct (current) for use outside this loop.
                 tempFileOutIndex = results.size() ? nextTempFileOutIndex : tempFileOutIndex;
 
-                // The include depth is just to help us style/indicate include depth in the program output.
-                ++depth;
+                // The include depth is to help us style/indicate include depth in the program output.
+                // Using it for the k_maxIncludeDepth is a hack. See k_maxIncludeDepth declaration.
+                if (++depth > k_maxIncludeDepth) {
+                    Logging::LogError("Max include depth of %d hit. This normally means includes are circular.", k_maxIncludeDepth);
+                    break;
+                }
             }
 
             std::filesystem::create_directories(outputPath.parent_path());
@@ -323,7 +336,7 @@ namespace {
     std::optional<VarsCollection> ParseInlineVariables(std::filesystem::path const& mutablePagePath) {
         auto job = Logging::JobScope("Variable Declaration");
 
-        std::filesystem::path const publicPathRelative = std::filesystem::relative(mutablePagePath, k_PublicPath);
+        std::filesystem::path const publicPathRelative = std::filesystem::relative(mutablePagePath, GetPublicPath());
 
         if (!std::filesystem::exists(mutablePagePath) || !std::filesystem::is_regular_file(mutablePagePath)) {
             Logging::LogError("File not found: %s", mutablePagePath.string().c_str());
@@ -348,7 +361,7 @@ namespace {
         
         if (results.size() > 0) {
 
-            std::filesystem::path const tempPath = std::filesystem::temp_directory_path() / publicPathRelative.parent_path() / (std::filesystem::path("1_") += (publicPathRelative.filename()));
+            std::filesystem::path const tempPath = std::filesystem::temp_directory_path() / publicPathRelative.parent_path() / (std::filesystem::path("2_") += (publicPathRelative.filename()));
             if (std::filesystem::exists(tempPath)) {
                 Logging::LogWorkVerbose("Deleting %s", tempPath.string().c_str());
                 if (!std::filesystem::remove(tempPath)) {
@@ -413,7 +426,7 @@ namespace {
     // "mutablePagePath" is named as such because the file at this path will be changed.
     void SubstituteVariables(std::filesystem::path const& mutablePagePath, std::initializer_list<std::optional<VarsCollection>> variableCollections) {
         auto job = Logging::JobScope("Variable Substitution");
-        std::filesystem::path const publicPathRelative = std::filesystem::relative(mutablePagePath, k_PublicPath);
+        std::filesystem::path const publicPathRelative = std::filesystem::relative(mutablePagePath, GetPublicPath());
 
        if(!std::filesystem::exists(mutablePagePath) || !std::filesystem::is_regular_file(mutablePagePath)) {
             Logging::LogError("File not found: %s", mutablePagePath.string().c_str());
@@ -436,7 +449,7 @@ namespace {
         // Only process includes if there are any, otherwise we can skip a temporary file and copy directly to output.
         if(results.size() > 0) {
 
-            std::filesystem::path const tempPath = std::filesystem::temp_directory_path() / publicPathRelative.parent_path() / (std::filesystem::path("1_") += (publicPathRelative.filename()));
+            std::filesystem::path const tempPath = std::filesystem::temp_directory_path() / publicPathRelative.parent_path() / (std::filesystem::path("3_") += (publicPathRelative.filename()));
             if(std::filesystem::exists(tempPath)) {
                 Logging::LogWorkVerbose("Deleting %s", tempPath.string().c_str());
                 if(!std::filesystem::remove(tempPath)) {
@@ -506,8 +519,8 @@ namespace {
 
 void RenderPage(std::filesystem::path const& sourcePath, std::optional<VarsCollection> const& vars) {
 
-    std::filesystem::path const sitePathRelative = std::filesystem::relative(sourcePath, k_SitePath);
-    std::filesystem::path const outputPath = k_PublicPath / sitePathRelative;
+    std::filesystem::path const sitePathRelative = std::filesystem::relative(sourcePath, GetSitePath());
+    std::filesystem::path const outputPath = GetPublicPath() / sitePathRelative;
 
     Logging::LogWork("Source File: %s", sourcePath.string().c_str());
     Logging::LogWork("Output: %s", outputPath.string().c_str());
