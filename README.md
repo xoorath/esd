@@ -4,6 +4,12 @@
 
 The esd tool is named after electrostatic discharge and is here to take the pain out of making static websites.
 
+## Download
+
+Download esd below or [build it yourself](Docs/Build.md)
+
+[Linux x64](Todo/esd.zip) | [Windows x64](Todo/esd.zip) | [Windows x86](Todo/esd.zip) | [MacOS](Todo/esd.zip)
+
 ## Features
 
 **There are only 3 features.**
