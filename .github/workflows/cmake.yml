@@ -77,7 +77,7 @@ jobs:
       - name: Install Ninja
         if: "contains(matrix.config.os, 'Ubuntu')"
         run: |
-          apt-get update
+          sudo apt-get update
           sudo apt-get install ninja-build build-essential
 
       - name: Generate ${{ matrix.config.os }}-${{ matrix.config.build_arch }} ${{ matrix.config.build_type }}
