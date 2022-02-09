@@ -24,54 +24,62 @@ jobs:
           os: Windows-2019,
           build_arch: Win32,
           build_type: Debug,
-          build_generator: Visual Studio 16 2019
+          build_generator: Visual Studio 16 2019,
+          clearname: win32-dbg
         }
         - {
           os: Windows-2019,
           build_arch: Win32,
           build_type: MinSizeRel,
-          build_generator: Visual Studio 16 2019
+          build_generator: Visual Studio 16 2019,
+          clearname: win32
         }
         - {
           os: Windows-2019,
           build_arch: x64,
           build_type: Debug,
-          build_generator: Visual Studio 16 2019
+          build_generator: Visual Studio 16 2019,
+          clearname: win64-dbg
         }
         - {
           os: Windows-2019,
           build_arch: x64,
           build_type: MinSizeRel,
-          build_generator: Visual Studio 16 2019
+          build_generator: Visual Studio 16 2019,
+          clearname: win64
         }
         - {
           os: ubuntu-20.04,
           build_arch: x64,
           build_type: Debug,
-          build_generator: Ninja
+          build_generator: Ninja,
+          clearname: linux-dbg
         }
         - {
           os: ubuntu-20.04,
           build_arch: x64,
           build_type: MinSizeRel,
-          build_generator: Ninja
+          build_generator: Ninja,
+          clearname: linux
         }
         - {
           os: Macos-10.15,
           build_arch: x64,
           build_type: Debug,
-          build_generator: Ninja
+          build_generator: Ninja,
+          clearname: macos-dbg
         }
         - {
           os: Macos-10.15,
           build_arch: x64,
           build_type: MinSizeRel,
-          build_generator: Ninja
+          build_generator: Ninja,
+          clearname: macos
         }
     runs-on: ${{ matrix.config.os }}
     steps:
 
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
 
       - name: Install Ninja
         if: "contains(matrix.config.os, 'Macos')"
@@ -88,26 +96,26 @@ jobs:
           sudo apt-get upgrade build-essential
           sudo apt-get upgrade gcc
 
-      - name: Generate ${{ matrix.config.os }}-${{ matrix.config.build_arch }} ${{ matrix.config.build_type }}
+      - name: Generate ${{ matrix.config.clearname }}
         if: "contains(matrix.config.build_generator, 'Visual Studio')"
         run: |
-          cmake -S . -B Build -A ${{ matrix.config.build_arch }} -G "${{ matrix.config.build_generator}}"
+          cmake -S . -B Build -A ${{ matrix.config.build_arch }} -G "${{ matrix.config.build_generator}}" -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="$GITHUB_WORKSPACE${{ matrix.config.clearname }}"
 
-      - name: Generate ${{ matrix.config.os }}-${{ matrix.config.build_arch }} ${{ matrix.config.build_type }}
+      - name: Generate ${{ matrix.config.clearname }}
         if: "!contains(matrix.config.build_generator, 'Visual Studio')"
         run: |
-          cmake -S . -B Build -G "${{ matrix.config.build_generator}}"
+          cmake -S . -B Build -G "${{ matrix.config.build_generator}}" -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="$GITHUB_WORKSPACE${{ matrix.config.clearname }}"
 
-      - name: Build ${{ matrix.config.os }}-${{ matrix.config.build_arch }} ${{ matrix.config.build_type }}
+      - name: Build ${{ matrix.config.clearname }}
         run: |
           cmake --build Build --config ${{ matrix.config.build_type }}
 
       - uses: actions/upload-artifact@v2
         with:
-          name: esd ${{ matrix.config.os }}-${{ matrix.config.build_arch }} ${{ matrix.config.build_type }}
+          name: esd ${{ matrix.config.clearname }}
           path: |
-            Build/**/${{ matrix.config.build_type }}/esd.exe
-            Build/**/esd
+            ${{ matrix.config.clearname }}/esd.exe
+            ${{ matrix.config.clearname }}/esd
           if-no-files-found: error
           retention-days: 7
           
@@ -115,7 +123,7 @@ jobs:
         with:
           name: esd all
           path: |
-            Build/**/${{ matrix.config.build_type }}/esd.exe
-            Build/**/esd
+            ${{ matrix.config.clearname }}/esd.exe
+            ${{ matrix.config.clearname }}/esd
           if-no-files-found: error
           retention-days: 7
