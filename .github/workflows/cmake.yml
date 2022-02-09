@@ -106,7 +106,16 @@ jobs:
         with:
           name: esd ${{ matrix.config.os }}-${{ matrix.config.build_arch }} ${{ matrix.config.build_type }}
           path: |
-            Build/${{ matrix.config.build_type }}/**
-            Build/esd
+            Build/**/${{ matrix.config.build_type }}/esd.exe
+            Build/**/esd
+          if-no-files-found: error
+          retention-days: 7
+          
+      - uses: actions/upload-artifact@v2
+        with:
+          name: esd all
+          path: |
+            Build/**/${{ matrix.config.build_type }}/esd.exe
+            Build/**/esd
           if-no-files-found: error
           retention-days: 7
