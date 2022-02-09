@@ -114,8 +114,8 @@ jobs:
         with:
           name: esd ${{ matrix.config.clearname }}
           path: |
-            ${{ matrix.config.clearname }}/esd.exe
-            ${{ matrix.config.clearname }}/esd
+            Build/**/esd
+            Build/**/esd.exe
           if-no-files-found: error
           retention-days: 7
           
@@ -123,7 +123,7 @@ jobs:
         with:
           name: esd all
           path: |
-            ${{ matrix.config.clearname }}/esd.exe
-            ${{ matrix.config.clearname }}/esd
+            Build/**/esd
+            Build/**/esd.exe
           if-no-files-found: error
           retention-days: 7
