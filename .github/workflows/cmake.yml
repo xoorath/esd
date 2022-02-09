@@ -104,7 +104,7 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: esd ${{ matrix.config.os }}-${{ matrix.config.build_arch }} ${{ matrix.config.build_type }} ${{ matrix.config.os }}
+          name: esd ${{ matrix.config.os }}-${{ matrix.config.build_arch }} ${{ matrix.config.build_type }}
           path: |
             Build/${{ matrix.config.build_type }}/**
             Build/esd
