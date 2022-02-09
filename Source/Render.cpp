@@ -244,15 +244,15 @@ namespace {
         //continue to count the number of includes proccessed (to log later)
         int includesProcessed = static_cast<int>(results.size());
 
+        // we keep two temporary paths so we can ping-pong between temporary files as we process includes
+        size_t tempFileOutIndex = 0;
+        std::array<std::filesystem::path, 2> const tempPaths = {
+            std::filesystem::temp_directory_path() / sitePathRelative.parent_path() / (std::filesystem::path("0_") += (sitePathRelative.filename())),
+            std::filesystem::temp_directory_path() / sitePathRelative.parent_path() / (std::filesystem::path("1_") += (sitePathRelative.filename()))
+        };
+
         // Only process includes if there are any, otherwise we can skip a temporary file and copy directly to output.
         if(results.size() > 0) {
-            // we keep two temporary paths so we can ping-pong between temporary files as we process includes
-            size_t tempFileOutIndex = 0;
-            std::array<std::filesystem::path, 2> const tempPaths = {
-                std::filesystem::temp_directory_path() / sitePathRelative.parent_path() / (std::filesystem::path("0_") += (sitePathRelative.filename())),
-                std::filesystem::temp_directory_path() / sitePathRelative.parent_path() / (std::filesystem::path("1_") += (sitePathRelative.filename()))
-            };
-
             for(auto const& p : tempPaths) {
                 if(std::filesystem::exists(p)) {
                     Logging::LogWorkVerbose("Deleting %s", p.string().c_str());
@@ -329,6 +329,13 @@ namespace {
 
         }
 
+        for (std::filesystem::path const& p : tempPaths) {
+            Logging::LogWorkVerbose("Deleting %s", p.string().c_str());
+            if (!std::filesystem::remove(p)) {
+                Logging::LogWarning("Could not delete %s.", p.string().c_str());
+            }
+        }
+
         Logging::LogWork("%d include%s processed", includesProcessed, includesProcessed==1?"":"s");
     }
 
@@ -360,10 +367,10 @@ namespace {
         pageStream.seekg(0);
 
         int variablesDeclared = 0;
+
+        std::filesystem::path const tempPath = std::filesystem::temp_directory_path() / publicPathRelative.parent_path() / (std::filesystem::path("2_") += (publicPathRelative.filename()));
         
         if (results.size() > 0) {
-
-            std::filesystem::path const tempPath = std::filesystem::temp_directory_path() / publicPathRelative.parent_path() / (std::filesystem::path("2_") += (publicPathRelative.filename()));
             if (std::filesystem::exists(tempPath)) {
                 Logging::LogWorkVerbose("Deleting %s", tempPath.string().c_str());
                 if (!std::filesystem::remove(tempPath)) {
@@ -419,6 +426,13 @@ namespace {
             std::filesystem::copy(tempPath, mutablePagePath, std::filesystem::copy_options::overwrite_existing);
         }
 
+        if (std::filesystem::exists(tempPath)) {
+            Logging::LogWorkVerbose("Deleting %s", tempPath.string().c_str());
+            if (!std::filesystem::remove(tempPath)) {
+                Logging::LogWarning("Could not delete %s.", tempPath.string().c_str());
+            }
+        }
+
         Logging::LogWork("%d inline variable%s declared", variablesDeclared, variablesDeclared == 1 ? "" : "s");
         return { collection };
     }
@@ -452,10 +466,10 @@ namespace {
         int variablesSubstituted = 0;
         int failedSubstitutions = 0;
 
+        std::filesystem::path const tempPath = std::filesystem::temp_directory_path() / publicPathRelative.parent_path() / (std::filesystem::path("3_") += (publicPathRelative.filename()));
+
         // Only process includes if there are any, otherwise we can skip a temporary file and copy directly to output.
         if(results.size() > 0) {
-
-            std::filesystem::path const tempPath = std::filesystem::temp_directory_path() / publicPathRelative.parent_path() / (std::filesystem::path("3_") += (publicPathRelative.filename()));
             if(std::filesystem::exists(tempPath)) {
                 Logging::LogWorkVerbose("Deleting %s", tempPath.string().c_str());
                 if(!std::filesystem::remove(tempPath)) {
@@ -521,6 +535,14 @@ namespace {
 
             std::filesystem::copy(tempPath, mutablePagePath, std::filesystem::copy_options::overwrite_existing);
         }
+
+        if (std::filesystem::exists(tempPath)) {
+            Logging::LogWorkVerbose("Deleting %s", tempPath.string().c_str());
+            if (!std::filesystem::remove(tempPath)) {
+                Logging::LogWarning("Could not delete %s.", tempPath.string().c_str());
+            }
+        }
+
         Logging::LogWork("%d variable%s substituted", variablesSubstituted, variablesSubstituted == 1 ? "" : "s");
         if (failedSubstitutions > 0) {
             std::stringstream ss;
@@ -539,17 +561,50 @@ void RenderPage(std::filesystem::path const& sourcePath, std::optional<VarsColle
 
     Logging::LogWork("Source File: %s", sourcePath.string().c_str());
     Logging::LogWork("Output: %s", outputPath.string().c_str());
-    
+
     if(!std::filesystem::exists(sourcePath) || !std::filesystem::is_regular_file(sourcePath)) {
         Logging::LogError("File not found: %s", sourcePath.string().c_str());
         return;
     }
 
-    RenderIncludes(sourcePath, outputPath);
-    std::optional<VarsCollection> inlineVariables = ParseInlineVariables(outputPath);
+    // A total smattering of file types we know won't contain esd template information.
+    // If a file in public/site has one of these extensions it will be copied directly instead of looking for template information.
+    auto const knownBinaryExtensions = {
+        ".exe", ".zip", ".7z",
+        ".psd", ".xcf", ".ai",
+        ".tiff", ".bmp", ".jpg", ".jpeg", ".gif", ".png", ".eps", ".raw",
+        ".woff", ".woff2", ".ttf", ".otf",
+        ".mp3", ".wav", ".m4a", ".flac", ".aac"
+        ".mp4", ".webm"
+    };
 
-    // pass inlineVariables first so they are read before the variables from Vars.txt
-    SubstituteVariables(outputPath, { inlineVariables, vars });
+    std::string extension = sourcePath.extension().string();
+    std::transform(extension.begin(), extension.end(), extension.begin(), [](unsigned char c) { return std::tolower(c); });
+
+    if (std::find(knownBinaryExtensions.begin(), knownBinaryExtensions.end(), extension) == knownBinaryExtensions.end()) {
+        RenderIncludes(sourcePath, outputPath);
+        std::optional<VarsCollection> inlineVariables = ParseInlineVariables(outputPath);
+
+        // pass inlineVariables first so they are read before the variables from Vars.txt
+        SubstituteVariables(outputPath, { inlineVariables, vars });
+    } else {
+        bool doCopy = true;
+        if (std::filesystem::exists(outputPath))
+        {
+            std::filesystem::file_time_type sourceWriteTime = std::filesystem::last_write_time(sourcePath);
+            std::filesystem::file_time_type outputWriteTime = std::filesystem::last_write_time(outputPath);
+            if (sourceWriteTime == outputWriteTime) {
+                Logging::LogWork("Asset is unchanged. Skipping copy step.", outputPath.string().c_str());
+                Logging::LogWorkVerbose("If skipping copy is a mistake you can force the copy by deleting the output file and trying again.");
+                doCopy = false;
+            }
+        }
+
+        if (doCopy) {
+            Logging::LogWork("Asset file being copied directly without using esd features.");
+            std::filesystem::copy(sourcePath, outputPath, std::filesystem::copy_options::overwrite_existing);
+        }
+    }
 
     Logging::LogWork("");
 }

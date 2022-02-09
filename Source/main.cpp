@@ -4,22 +4,43 @@
 #include "Render.h"
 #include "VarsCollection.h"
 
+#include <chrono>
 #include <filesystem>
 #include <iostream>
 #include <optional>
 #include <sstream>
 
-int main()
+int main(int argc, char const* argv[])
 {
+    auto startTime = std::chrono::steady_clock::now();
     try 
     {
-        // Ensure all required paths exist before begining.
-        for(const auto& path : {GetPublicPath(), GetPrivatePath(), GetSitePath(), GetComponentPath()}) {
-            if(!std::filesystem::exists(path) || !std::filesystem::is_directory(path)) {
+        for (int i = 0; i < argc; ++i) {
+            if (std::strcmp(argv[i], "-v")) {
+                Logging::g_Verbose = true;
+            }
+        }
+
+        {
+            // The site path is required, if we don't have it we probably didn't start the program correctly.
+            const auto& sitePath = GetSitePath();
+            if (!std::filesystem::exists(sitePath) || !std::filesystem::is_directory(sitePath)) {
                 std::stringstream errorText;
-                errorText << "Error: Path does not exist or is not a directory.\n";
-                Logging::AppendFileDetails(errorText, path);
+                errorText << sitePath << " does not exist or is not a directory.\n";
+                Logging::AppendFileDetails(errorText, sitePath);
                 throw std::runtime_error(errorText.str());
+            }
+
+            if (std::filesystem::is_empty(sitePath)) {
+                std::stringstream errorText;
+                errorText << sitePath << " is empty, there's no work to do.\n";
+                Logging::AppendFileDetails(errorText, sitePath);
+                throw std::runtime_error(errorText.str());
+            }
+
+            const auto& publicPath = GetPublicPath();
+            if (!std::filesystem::exists(publicPath)) {
+                std::filesystem::create_directories(publicPath);
             }
         }
 
@@ -68,6 +89,15 @@ int main()
     {
         Logging::LogError(exception.what());
         return -1;
+    }
+    auto endTime = std::chrono::steady_clock::now();
+    std::chrono::duration<double> elapsedSeconds = endTime - startTime;
+    auto ms = (elapsedSeconds * 1000.0).count();
+    if (ms >= 1.0) {
+        std::cout << "Took " << static_cast<int>(ms) << "ms" << std::endl;
+    } else {
+        // This is very optimistic for a file reading application... probably not needed.
+        std::cout << "Took " << static_cast<int>(ms*1000.0) << "µs" << std::endl;
     }
     return 0;
 }

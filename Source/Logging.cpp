@@ -16,7 +16,8 @@
 // Header for all logging and assertions
 
 namespace Logging {
-    bool g_Verbose = true;
+    // can be set with -v argument on the command line.
+    bool g_Verbose = false;
 
     namespace {
         size_t s_Indentation = 0;
