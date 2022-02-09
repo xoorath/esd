@@ -5,6 +5,7 @@
 #include <functional>
 #include <fstream>
 #include <set>
+#include <sstream>
 #include <vector>
 
 #include "VarsCollection.h"
