@@ -25,28 +25,28 @@ jobs:
           build_arch: Win32,
           build_type: MinSizeRel,
           build_generator: Visual Studio 16 2019,
-          clearname: win32
+          clearname: esd win32
         }
         - {
           os: Windows-2019,
           build_arch: x64,
           build_type: MinSizeRel,
           build_generator: Visual Studio 16 2019,
-          clearname: win64
+          clearname: esd win64
         }
         - {
           os: ubuntu-20.04,
           build_arch: x64,
           build_type: MinSizeRel,
           build_generator: Ninja,
-          clearname: linux
+          clearname: esd linux
         }
         - {
           os: Macos-10.15,
           build_arch: x64,
           build_type: MinSizeRel,
           build_generator: Ninja,
-          clearname: macos
+          clearname: esd macos
         }
     runs-on: ${{ matrix.config.os }}
     steps:
