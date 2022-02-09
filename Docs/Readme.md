@@ -4,7 +4,8 @@
 
 [Home](../README.md)
 
-* [Building esd](./Build.md)
 * [Example](./Example.md)
+* [Variables](./Vars.md)
+* [Building esd](./Build.md)
 * [Command Line Arguments](<./Command Line.md>)
 * [Extras](./Extras.md)
