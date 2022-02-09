@@ -23,23 +23,9 @@ jobs:
         - {
           os: Windows-2019,
           build_arch: Win32,
-          build_type: Debug,
-          build_generator: Visual Studio 16 2019,
-          clearname: win32-dbg
-        }
-        - {
-          os: Windows-2019,
-          build_arch: Win32,
           build_type: MinSizeRel,
           build_generator: Visual Studio 16 2019,
           clearname: win32
-        }
-        - {
-          os: Windows-2019,
-          build_arch: x64,
-          build_type: Debug,
-          build_generator: Visual Studio 16 2019,
-          clearname: win64-dbg
         }
         - {
           os: Windows-2019,
@@ -51,23 +37,9 @@ jobs:
         - {
           os: ubuntu-20.04,
           build_arch: x64,
-          build_type: Debug,
-          build_generator: Ninja,
-          clearname: linux-dbg
-        }
-        - {
-          os: ubuntu-20.04,
-          build_arch: x64,
           build_type: MinSizeRel,
           build_generator: Ninja,
           clearname: linux
-        }
-        - {
-          os: Macos-10.15,
-          build_arch: x64,
-          build_type: Debug,
-          build_generator: Ninja,
-          clearname: macos-dbg
         }
         - {
           os: Macos-10.15,
