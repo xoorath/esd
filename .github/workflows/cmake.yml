@@ -84,7 +84,7 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: esd ${{ matrix.config.clearname }}
+          name: ${{ matrix.config.clearname }}
           path: |
             Build/**/esd
             Build/**/esd.exe
