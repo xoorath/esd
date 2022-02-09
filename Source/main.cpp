@@ -5,6 +5,7 @@
 #include "VarsCollection.h"
 
 #include <chrono>
+#include <cstring>
 #include <filesystem>
 #include <iostream>
 #include <optional>
@@ -97,7 +98,7 @@ int main(int argc, char const* argv[])
         std::cout << "Took " << static_cast<int>(ms) << "ms" << std::endl;
     } else {
         // This is very optimistic for a file reading application... probably not needed.
-        std::cout << "Took " << static_cast<int>(ms*1000.0) << "µs" << std::endl;
+        std::cout << "Took " << static_cast<int>(ms*1000.0) << "us" << std::endl;
     }
     return 0;
 }
