@@ -94,7 +94,7 @@ namespace Logging {
         va_start(args, format);
         vprintf(format, args);
         va_end(args);
-        std::cout << std::endl << "\x1B[0m";
+        std::cout << std::endl;
         SetConsoleColor(ConsoleColor::Normal);
     }
 

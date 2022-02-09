@@ -6,6 +6,14 @@
 #include <string_view>
 #include <unordered_map>
 
+enum class VarNameValidity {
+    Valid,
+    FirstCharInvalid,
+    Invalid
+};
+
+// Helper function to evaluate validity of variable name declaration or usage.
+VarNameValidity CheckVariableNameValidity(std::string_view variableName);
 
 /**************************************************************************************************
 Vars Collection:

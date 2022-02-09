@@ -2,30 +2,73 @@
 
 #include "Logging.h"
 
+#include <algorithm> 
+#include <cctype>
+#include <cwctype>
 #include <fstream>
 #include <iostream>
+#include <locale>
 #include <string.h>
 
-std::istream& GetVarsLine(std::istream& stream, std::string& outString) {
-    outString.clear();
-    char ch = '\0';
-    while (stream.read(&ch, 1)) {
-        switch (ch) {
-            case '\n': return stream;
+namespace {
+    std::istream& GetVarsLine(std::istream& is, std::string& t)
+    {
+        t.clear();
+        std::istream::sentry se(is, true);
+        std::streambuf* sb = is.rdbuf();
+
+        while(true) {
+            int c = sb->sbumpc();
+            switch (c) {
+            case '\n':
+                return is;
             case '\r':
-                if (stream.peek() == '\n') {
-                    stream.read(&ch, 1);
-                }
-                return stream;
+                if (sb->sgetc() == '\n')
+                    sb->sbumpc();
+                return is;
             case std::streambuf::traits_type::eof():
-                stream.setstate(std::ios::eofbit);
-                return stream;
+                if (t.empty())
+                    is.setstate(std::ios::eofbit);
+                return is;
             default:
-                outString += ch;
-                break;
+                t += (char)c;
+            }
         }
     }
-    return stream;
+
+    std::string VarNameTrim(std::string const& s) {
+        std::string trimmed = s;
+        trimmed.erase(trimmed.begin(), std::find_if(trimmed.begin(), trimmed.end(), [](unsigned char ch) {
+            return !std::isspace(ch);
+        }));
+        trimmed.erase(std::find_if(trimmed.rbegin(), trimmed.rend(), [](unsigned char ch) {
+            return !std::isspace(ch); 
+        }).base(), trimmed.end());
+        return trimmed;
+    }
+
+}
+
+VarNameValidity CheckVariableNameValidity(std::string_view variableName) {
+    // From the docs:
+    // A valid name should start with an underscore `_`, a hyphen `-` or a letter `a-z`, `A-Z` 
+    // which is followed by any numbers, hyphens, underscores, letters.
+    // It cannot start with a digit.
+
+    if (variableName.empty()) {
+        return VarNameValidity::Invalid;
+    }
+    if (variableName[0] == '-' || variableName[0] == '_' || std::isalpha(variableName[0])) {
+        for (size_t i = 1; i < variableName.size(); ++i) {
+            if (variableName[0] != '-' && variableName[0] != '_' && !std::isalnum(variableName[0])) {
+                return VarNameValidity::Invalid;
+            }
+        }
+    }
+    else {
+        return VarNameValidity::FirstCharInvalid;
+    }
+    return VarNameValidity::Valid;
 }
 
 //static
@@ -49,7 +92,15 @@ std::optional<VarsCollection> VarsCollection::TryLoadVarsCollection(std::filesys
     std::string continuationValue;
 
     auto const LineIsComment = [](std::string_view line) -> bool {
-        return line.size() >= 1 && line[0] == '#';
+        for (char ch : line) {
+            if (!std::isspace(ch) && ch != '#') {
+                return false;
+            }
+            if (ch == '#') {
+                return true;
+            }
+        }
+        return true;
     };
 
     auto const LineHasContinuation = [](std::string_view line) -> bool {
@@ -60,7 +111,9 @@ std::optional<VarsCollection> VarsCollection::TryLoadVarsCollection(std::filesys
         && (line.size() == 1 || line[line.size()-2] == '\\');
     };
 
+    int lineNum = 0;
     while(GetVarsLine(stream, line)) {
+        lineNum++;
         if(insideContinuation) {
             if(LineHasContinuation(line)) {
                 // continuation keeps going, don't include the last char.
@@ -85,29 +138,57 @@ std::optional<VarsCollection> VarsCollection::TryLoadVarsCollection(std::filesys
         // Check if this is an assignment operation
         size_t const assignmentIndex = line.find_first_of('=');
         if(assignmentIndex != std::string::npos) {
-            std::string const variableName = line.substr(0, assignmentIndex);
+            std::string const variableName = VarNameTrim(line.substr(0, assignmentIndex));
 
-            // Check if this assignment has a continuation
-            if(LineHasContinuation(line)) {
-                continuationKey = variableName;
-                // just like usual we pick up the value after the assignment op
-                // except we want to stop one short from the end so we don't pick up the backslash
-                continuationValue = line.substr(assignmentIndex+1, line.size()-assignmentIndex-2);
-                // This bool helps us pick up all following continuations
-                insideContinuation = true;
-            } else {
-                if(line[line.size()-1] == '\\') {
+            VarNameValidity validity = CheckVariableNameValidity(variableName);
+
+            if (validity == VarNameValidity::Valid) {
+                // Check if this assignment has a continuation
+                if (LineHasContinuation(line)) {
+                    continuationKey = variableName;
                     // just like usual we pick up the value after the assignment op
-                    // except we want to stop one short from the end so we don't pick up the escaped backslash
-                    std::string const variableValue = line.substr(assignmentIndex+1, line.size()-assignmentIndex-2);
-                    collection.SetVariable(variableName, variableValue);
-                } else {
-                    // pick up the value after the assignment op
-                    std::string const variableValue = line.substr(assignmentIndex+1);
-                    collection.SetVariable(variableName, variableValue);
+                    // except we want to stop one short from the end so we don't pick up the backslash
+                    continuationValue = line.substr(assignmentIndex + 1, line.size() - assignmentIndex - 2);
+                    // This bool helps us pick up all following continuations
+                    insideContinuation = true;
+                }
+                else {
+                    if (line[line.size() - 1] == '\\') {
+                        // just like usual we pick up the value after the assignment op
+                        // except we want to stop one short from the end so we don't pick up the escaped backslash
+                        std::string const variableValue = line.substr(assignmentIndex + 1, line.size() - assignmentIndex - 2);
+                        collection.SetVariable(variableName, variableValue);
+                    }
+                    else {
+                        // pick up the value after the assignment op
+                        std::string const variableValue = line.substr(assignmentIndex + 1);
+                        collection.SetVariable(variableName, variableValue);
+                    }
                 }
             }
+            else {
+                switch (validity) {
+                    default:
+                    case VarNameValidity::Invalid:
+                        if (variableName.size() < 64) {
+                            Logging::LogError("Error in Vars.txt(%d) \"%s\" is not a valid name.", lineNum, variableName.c_str());
+                        }
+                        else {
+                            Logging::LogError("Error in Vars.txt(%d) Name is invalid (and too long to print here).");
+                        }
+                        break;
+
+                    case VarNameValidity::FirstCharInvalid:
+                        // The size check here shouldn't be necessary but let's me sleep easier at night.
+                        Logging::LogError("Error in Vars.txt(%d) '%c' is not a valid first character of a variable name. Must be a letter, hyphen or underscore." , lineNum, variableName.size() ? variableName[0] : ' ');
+                        break;
+                }
+            }
+            
+            continue;
         }
+
+        Logging::LogWarning("Unrecognized line: Vars.txt(%d)", lineNum);
     }
 
     return {collection};

@@ -2,9 +2,10 @@
 
 #include <array>
 #include <istream>
-#include <vector>
 #include <functional>
 #include <fstream>
+#include <set>
+#include <vector>
 
 #include "VarsCollection.h"
 #include "Paths.h"
@@ -441,10 +442,14 @@ namespace {
         }
 
         std::vector<CappedSearchResult> results;
-        
+        std::set<std::string> failedSubstitutionNames;
+
         results = FindIndicatorsWithCaps(pageStream, k_VarSubstitutionIndicator, k_CapChar);
         pageStream.clear();
         pageStream.seekg(0);
+
+        int variablesSubstituted = 0;
+        int failedSubstitutions = 0;
 
         // Only process includes if there are any, otherwise we can skip a temporary file and copy directly to output.
         if(results.size() > 0) {
@@ -492,8 +497,11 @@ namespace {
 
                 if(valueSubstituted) {
                     tempFileStream << substitution;
+                    variablesSubstituted++;
                 } else {
                     tempFileStream << variableSubstitution.ResultCenter;
+                    failedSubstitutions++;
+                    failedSubstitutionNames.insert(variableSubstitution.ResultCenter);
                 }
 
                 // Then advance the input file itself so we skip to the end of the variable substitution
@@ -512,8 +520,14 @@ namespace {
 
             std::filesystem::copy(tempPath, mutablePagePath, std::filesystem::copy_options::overwrite_existing);
         }
-        int variablesSubstituted = static_cast<int>(results.size());
-        Logging::LogWork("%d variable%s substitued", variablesSubstituted, variablesSubstituted == 1 ? "" : "s");
+        Logging::LogWork("%d variable%s substituted", variablesSubstituted, variablesSubstituted == 1 ? "" : "s");
+        if (failedSubstitutions > 0) {
+            std::stringstream ss;
+            for (std::string const& name : failedSubstitutionNames) {
+                ss << "'" << name << "' ";
+            }
+            Logging::LogWarning("Variable substitution failed %d times with these variables: %s", failedSubstitutions, ss.str().c_str());
+        }
     }
 }
 
