@@ -99,12 +99,12 @@ jobs:
       - name: Generate ${{ matrix.config.clearname }}
         if: "contains(matrix.config.build_generator, 'Visual Studio')"
         run: |
-          cmake -S . -B Build -A ${{ matrix.config.build_arch }} -G "${{ matrix.config.build_generator}}" -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="$GITHUB_WORKSPACE${{ matrix.config.clearname }}"
+          cmake -S . -B Build -A ${{ matrix.config.build_arch }} -G "${{ matrix.config.build_generator}}" -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="${{ matrix.config.clearname }}"
 
       - name: Generate ${{ matrix.config.clearname }}
         if: "!contains(matrix.config.build_generator, 'Visual Studio')"
         run: |
-          cmake -S . -B Build -G "${{ matrix.config.build_generator}}" -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="$GITHUB_WORKSPACE${{ matrix.config.clearname }}"
+          cmake -S . -B Build -G "${{ matrix.config.build_generator}}" -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="${{ matrix.config.clearname }}"
 
       - name: Build ${{ matrix.config.clearname }}
         run: |
