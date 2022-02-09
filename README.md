@@ -14,7 +14,7 @@ Release: [v0.2](https://github.com/xoorath/esd/releases/tag/v0.2)
 
 [Download All](https://github.com/xoorath/esd/releases/download/v0.2/ESD.v0.2.zip) | [Linux x64](https://github.com/xoorath/esd/releases/download/v0.2/ESD.v0.2.Linux.zip) | [Windows x64](https://github.com/xoorath/esd/releases/download/v0.2/ESD.v0.2.Win64.zip) | [Windows x86](https://github.com/xoorath/esd/releases/download/v0.2/ESD.v0.2.Win32.zip) | [MacOS](https://github.com/xoorath/esd/releases/download/v0.2/ESD.v0.2.MacOS.zip)
 
- Or you can [build it yourself](Docs/Build.md).
+ You can also [build it yourself](Docs/Build.md) or try the [quck start template](https://github.com/xoorath/esd-template/generate) instead. Go ahead, it's free ✨.
 
 ## Features
 
