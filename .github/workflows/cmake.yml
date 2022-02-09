@@ -53,20 +53,8 @@ jobs:
 
       - uses: actions/checkout@v2
 
-      - name: Install Ninja
-        if: "contains(matrix.config.os, 'Macos')"
-        run: |
-          brew update
-          brew install ninja
-          brew upgrade
-
-      - name: Install Ninja
-        if: "contains(matrix.config.os, 'Ubuntu')"
-        run: |
-          sudo apt-get update
-          sudo apt-get install ninja-build
-          sudo apt-get upgrade build-essential
-          sudo apt-get upgrade gcc
+      - uses: seanmiddleditch/gha-setup-ninja@v3
+        if: "contains(matrix.config.os, 'Macos') || contains(matrix.config.os, 'Ubuntu')"
 
       - name: Generate ${{ matrix.config.clearname }}
         if: "contains(matrix.config.build_generator, 'Visual Studio')"
