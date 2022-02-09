@@ -10,11 +10,11 @@ Unlike alternative options it takes seconds to learn and runs faster than you ca
 
 ## Download
 
-Release: [v0.1](https://github.com/xoorath/esd/releases/tag/v0.1)
+Release: [v0.2](https://github.com/xoorath/esd/releases/tag/v0.2)
 
-[Linux x64](https://github.com/xoorath/esd/releases/download/v0.1/ESD.Linux.zip) | [Windows x64](https://github.com/xoorath/esd/releases/download/v0.1/ESD.Win64.zip) | [Windows x86](https://github.com/xoorath/esd/releases/download/v0.1/ESD.Win32.zip) | [MacOS](https://github.com/xoorath/esd/releases/download/v0.1/ESD.MacOS.zip)
+[Download All](https://github.com/xoorath/esd/releases/download/v0.2/ESD.v0.2.zip) | [Linux x64](https://github.com/xoorath/esd/releases/download/v0.2/ESD.v0.2.Linux.zip) | [Windows x64](https://github.com/xoorath/esd/releases/download/v0.2/ESD.v0.2.Win64.zip) | [Windows x86](https://github.com/xoorath/esd/releases/download/v0.2/ESD.v0.2.Win32.zip) | [MacOS](https://github.com/xoorath/esd/releases/download/v0.2/ESD.v0.2.MacOS.zip)
 
-Or you can [build it yourself](Docs/Build.md).
+ Or you can [build it yourself](Docs/Build.md).
 
 ## Features
 
