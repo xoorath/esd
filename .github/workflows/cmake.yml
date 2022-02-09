@@ -25,28 +25,28 @@ jobs:
           build_arch: Win32,
           build_type: MinSizeRel,
           build_generator: Visual Studio 16 2019,
-          clearname: esd win32
+          clearname: win32
         }
         - {
           os: Windows-2019,
           build_arch: x64,
           build_type: MinSizeRel,
           build_generator: Visual Studio 16 2019,
-          clearname: esd win64
+          clearname: win64
         }
         - {
           os: ubuntu-20.04,
           build_arch: x64,
           build_type: MinSizeRel,
           build_generator: Ninja,
-          clearname: esd linux
+          clearname: linux
         }
         - {
           os: Macos-10.15,
           build_arch: x64,
           build_type: MinSizeRel,
           build_generator: Ninja,
-          clearname: esd macos
+          clearname: macos
         }
     runs-on: ${{ matrix.config.os }}
     steps:
@@ -71,12 +71,12 @@ jobs:
       - name: Generate ${{ matrix.config.clearname }}
         if: "contains(matrix.config.build_generator, 'Visual Studio')"
         run: |
-          cmake -S . -B Build -A ${{ matrix.config.build_arch }} -G "${{ matrix.config.build_generator}}" -DGITHUB_CI=ON -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="${{ matrix.config.clearname }}"
+          cmake -S . -B Build -A ${{ matrix.config.build_arch }} -G "${{ matrix.config.build_generator}}" -DGITHUB_CI=ON -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="../${{ matrix.config.clearname }}"
 
       - name: Generate ${{ matrix.config.clearname }}
         if: "!contains(matrix.config.build_generator, 'Visual Studio')"
         run: |
-          cmake -S . -B Build -G "${{ matrix.config.build_generator}}" -DGITHUB_CI=ON -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="${{ matrix.config.clearname }}"
+          cmake -S . -B Build -G "${{ matrix.config.build_generator}}" -DGITHUB_CI=ON -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="../${{ matrix.config.clearname }}"
 
       - name: Build ${{ matrix.config.clearname }}
         run: |
@@ -84,18 +84,18 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.config.clearname }}
+          name: esd ${{ matrix.config.clearname }}
           path: |
-            Build/**/esd
+            **/esd
             Build/**/esd.exe
           if-no-files-found: error
           retention-days: 7
           
       - uses: actions/upload-artifact@v2
         with:
-          name: esd all
+          name: esd
           path: |
-            Build/**/esd
-            Build/**/esd.exe
+            **/esd
+            **/esd.exe
           if-no-files-found: error
           retention-days: 7
