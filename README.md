@@ -10,9 +10,9 @@ Unlike alternative options it takes seconds to learn and runs faster than you ca
 
 ## Download
 
-Release: [v0.2](https://github.com/xoorath/esd/releases/tag/v0.2)
+Release: [v0.3](https://github.com/xoorath/esd/releases/tag/v0.3)
 
-[Download All](https://github.com/xoorath/esd/releases/download/v0.2/ESD.v0.2.zip) | [Linux](https://github.com/xoorath/esd/releases/download/v0.2/ESD.v0.2.Linux.zip) | [Windows x64](https://github.com/xoorath/esd/releases/download/v0.2/ESD.v0.2.Winx64.zip) | [Windows x86](https://github.com/xoorath/esd/releases/download/v0.2/ESD.v0.2.Win32.zip) | [MacOS](https://github.com/xoorath/esd/releases/download/v0.2/ESD.v0.2.MacOS.zip)
+[Download All](https://github.com/xoorath/esd/releases/download/v0.3/esd.zip) | [Linux](https://github.com/xoorath/esd/releases/download/v0.3/esd.linux.zip) | [Windows x64](https://github.com/xoorath/esd/releases/download/v0.3/esd.win64.zip) | [Windows x86](https://github.com/xoorath/esd/releases/download/v0.3/esd.win32.zip) | [MacOS](https://github.com/xoorath/esd/releases/download/v0.3/esd.macos.zip)
 
  You can also [build it yourself](Docs/Build.md) or try the [quck start template](https://github.com/xoorath/esd-template/generate) instead. Go ahead, it's free ✨.
 
