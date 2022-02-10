@@ -2,14 +2,6 @@ cmake_minimum_required (VERSION 3.15)
 
 set(CMAKE_CXX_STANDARD 20)
 
-
-add_compile_options(
-    $<$<CONFIG:>:/MT>
-    $<$<CONFIG:Debug>:/MTd>
-    $<$<CONFIG:Release>:/MT>
-    $<$<CONFIG:RelWithDebInfo>:/MTd>
-    $<$<CONFIG:MinSizeRel>:/MT>
-)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 # This is specifically to pretty up packages made with github actions.
@@ -31,7 +23,6 @@ file(GLOB_RECURSE PROJ_SOURCE_FILES
 )
 
 add_executable(${PROJECT_NAME} ${PROJ_SOURCE_FILES})
-
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/Example")
 set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_COMMAND_ARGUMENTS "-v")
