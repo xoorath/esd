@@ -244,15 +244,16 @@ namespace {
         //continue to count the number of includes proccessed (to log later)
         int includesProcessed = static_cast<int>(results.size());
 
-        // we keep two temporary paths so we can ping-pong between temporary files as we process includes
-        size_t tempFileOutIndex = 0;
-        std::array<std::filesystem::path, 2> const tempPaths = {
-            std::filesystem::temp_directory_path() / sitePathRelative.parent_path() / (std::filesystem::path("0_") += (sitePathRelative.filename())),
-            std::filesystem::temp_directory_path() / sitePathRelative.parent_path() / (std::filesystem::path("1_") += (sitePathRelative.filename()))
-        };
 
         // Only process includes if there are any, otherwise we can skip a temporary file and copy directly to output.
         if(results.size() > 0) {
+            // we keep two temporary paths so we can ping-pong between temporary files as we process includes
+            size_t tempFileOutIndex = 0;
+            std::array<std::filesystem::path, 2> const tempPaths = {
+                std::filesystem::temp_directory_path() / sitePathRelative.parent_path() / (std::filesystem::path("0_") += (sitePathRelative.filename())),
+                std::filesystem::temp_directory_path() / sitePathRelative.parent_path() / (std::filesystem::path("1_") += (sitePathRelative.filename()))
+            };
+
             for(auto const& p : tempPaths) {
                 if(std::filesystem::exists(p)) {
                     Logging::LogWorkVerbose("Deleting %s", p.string().c_str());
@@ -321,19 +322,21 @@ namespace {
             // intentionally not providing an error code param so we can handle copy errors with exceptions.
             std::filesystem::copy(tempPaths[tempFileOutIndex], outputPath, std::filesystem::copy_options::overwrite_existing);
 
+            for (auto& tempFile : tempFiles) {
+                tempFile.close();
+            }
+
+            for (std::filesystem::path const& p : tempPaths) {
+                Logging::LogWorkVerbose("Deleting %s", p.string().c_str());
+                if (!std::filesystem::remove(p)) {
+                    Logging::LogWarning("Could not delete %s.", p.string().c_str());
+                }
+            }
+
         } else {
             std::filesystem::create_directories(outputPath.parent_path());
             // skip making a temporary file, just copy directly to output.
             std::filesystem::copy(sourcePath, outputPath, std::filesystem::copy_options::overwrite_existing);
-            
-
-        }
-
-        for (std::filesystem::path const& p : tempPaths) {
-            Logging::LogWorkVerbose("Deleting %s", p.string().c_str());
-            if (!std::filesystem::remove(p)) {
-                Logging::LogWarning("Could not delete %s.", p.string().c_str());
-            }
         }
 
         Logging::LogWork("%d include%s processed", includesProcessed, includesProcessed==1?"":"s");

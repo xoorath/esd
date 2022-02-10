@@ -17,7 +17,7 @@ int main(int argc, char const* argv[])
     try 
     {
         for (int i = 0; i < argc; ++i) {
-            if (std::strcmp(argv[i], "-v")) {
+            if (std::strcmp(argv[i], "-v") == 0) {
                 Logging::g_Verbose = true;
             }
         }
