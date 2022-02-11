@@ -575,7 +575,7 @@ void RenderPage(std::filesystem::path const& sourcePath, std::optional<VarsColle
     auto const knownBinaryExtensions = {
         ".exe", ".zip", ".7z",
         ".psd", ".xcf", ".ai",
-        ".tiff", ".bmp", ".jpg", ".jpeg", ".gif", ".png", ".eps", ".raw",
+        ".svg", ".tiff", ".bmp", ".jpg", ".jpeg", ".gif", ".png", ".eps", ".raw",
         ".woff", ".woff2", ".ttf", ".otf",
         ".mp3", ".wav", ".m4a", ".flac", ".aac"
         ".mp4", ".webm"
