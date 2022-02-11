@@ -570,6 +570,13 @@ void RenderPage(std::filesystem::path const& sourcePath, std::optional<VarsColle
         return;
     }
 
+    {
+        auto const outParent = outputPath.parent_path();
+        if (!std::filesystem::exists(outParent)) {
+            std::filesystem::create_directories(outParent);
+        }
+    }
+
     // A total smattering of file types we know won't contain esd template information.
     // If a file in public/site has one of these extensions it will be copied directly instead of looking for template information.
     auto const knownBinaryExtensions = {
