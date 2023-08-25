@@ -94,11 +94,7 @@ int main(int argc, char const* argv[])
     auto endTime = std::chrono::steady_clock::now();
     std::chrono::duration<double> elapsedSeconds = endTime - startTime;
     auto ms = (elapsedSeconds * 1000.0).count();
-    if (ms >= 1.0) {
-        std::cout << "Took " << static_cast<int>(ms) << "ms" << std::endl;
-    } else {
-        // This is very optimistic for a file reading application... probably not needed.
-        std::cout << "Took " << static_cast<int>(ms*1000.0) << "us" << std::endl;
-    }
+    std::cout << "Took " << static_cast<int>(ms) << "ms" << std::endl;
+
     return 0;
 }
