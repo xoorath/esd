@@ -1,6 +1,7 @@
 name: Build and Package
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main ]
     paths-ignore:
@@ -11,6 +12,8 @@ on:
       - '**.html'
       - '**.css'
       - '**.js'
+      - '**.yaml'
+      - '!**/*build*.yaml'
   pull_request:
     branches: [ main ]
 
