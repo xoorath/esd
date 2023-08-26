@@ -6,6 +6,7 @@
 name: flawfinder
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main ]
     paths-ignore:
@@ -34,15 +35,15 @@ jobs:
       security-events: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: flawfinder_scan
-        uses: david-a-wheeler/flawfinder@8e4a779ad59dbfaee5da586aa9210853b701959c
+        uses: david-a-wheeler/flawfinder@2.0.19
         with:
           arguments: '--sarif ./'
           output: 'flawfinder_results.sarif'
 
       - name: Upload analysis results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@v2.22.4
         with:
           sarif_file: ${{github.workspace}}/flawfinder_results.sarif
